@@ -6,7 +6,9 @@ Mr. Plumb runs commands to **gather evidence**, never to change anything. In `cl
 
 | Area | Allowed |
 |---|---|
-| Files | `ls`, `find` (no `-delete`/`-exec`), `tree`, `cat`, `head`, `tail`, `wc`, `grep`, `rg`, `sort`, `uniq`, `cut`, `diff`, `file`, `stat`, `du`, `df`, `jq`, `mkdir -p /tmp/plumb/...` |
+| Files | `ls`, `find` (no `-delete`/`-exec`), `fd` (no `-x`/`-X`), `tree`, `cat`, `head`, `tail`, `less`, `more`, `bat`, `nl`, `wc`, `grep`, `rg`, `ag`, `ack`, `sort`, `uniq`, `cut`, `tr`, `column`, `paste`, `comm`, `join`, `fold`, `rev`, `tac`, `diff`, `cmp`, `file`, `stat`, `readlink`, `realpath`, `du`, `df`, `jq`, `yq` (no `-i`), `xxd`/`od`/`hexdump`/`strings` (no output file), `md5`/`shasum`/`sha256sum`, `zcat`/`gzcat`, `tar -t` (list only), `unzip -l`/`-v`/`-Z`/`-t`/`-p`, `command -v`, `type`, `mkdir -p /tmp/plumb/...` |
+| sed | Read-only scripts only: print (`sed -n '10,40p'`, `sed -n '/^func X/,/^}/p'`), delete, quit, `=`, and `s`/`y` substitutions to stdout. Never `-i`/`-I`/`--in-place`, `-f`, or the `w`, `W`, `r`, `R`, `e` commands and `s///w`/`s///e` flags |
+| awk | Scripts that only read and print (`awk -F: '$3 > 500 {print $1}'`). Never `system()`, pipes, `getline`, `print > file`, `-f`, `-i` |
 | git | `log`, `blame`, `diff`, `show`, `status`, `rev-parse`, `ls-files`, `grep`, `shortlog`, `describe`, `cat-file`, `ls-tree`, `merge-base`, `rev-list`; listing-only `branch`, `tag`, `remote`, `worktree list`, `stash list/show`, `config --get/--list`; `symbolic-ref --short <ref>` (read); `fetch` (updates remote-tracking refs only, no `src:dst` refspecs) |
 | Go | `go test`, `go vet`, `go list`, `go version`, `go env`, `go doc`, `go mod graph/why/verify`, `go run`, `go build -o /tmp/plumb/<name>` |
 | Node / Next / Angular | `npm`/`pnpm`/`yarn` `test`, `ls`, `outdated`, `view`, `why`, `audit`; scripts `dev`, `start`, `serve`, `preview`, `build`, `lint`, `test`, `e2e`, `typecheck`, `check` (and `:variants`); `next info/lint/build/dev/start`; `ng version/test/serve/build/lint/e2e`; `tsc --noEmit`; `jest`, `vitest`; `eslint` (no `--fix`); `prettier --check`; `node <script>` |

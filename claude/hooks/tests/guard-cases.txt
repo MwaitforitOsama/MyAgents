@@ -245,3 +245,68 @@ BLOCK	plumb	Write	{REPO}/skills/plumb/SKILL.md
 BLOCK	plumb	Write	{REPO}/skills/plumb/knowledge/clouds/gcp.md
 BLOCK	plumb	Write	{REPO}/claude/hooks/plumb_guard.py
 BLOCK	plumb	Write	/Users/me/.claude/settings.json
+
+# ---- sed: read-only forms only
+ALLOW	plumb	Bash	sed -n '1,80p' internal/todo/handler.go
+ALLOW	plumb	Bash	sed -n '/^func Delete/,/^}/p' internal/todo/handler.go
+ALLOW	plumb	Bash	sed -n -e '10p' -e '20,30p' main.go
+ALLOW	plumb	Bash	sed -n '$p' go.mod
+ALLOW	plumb	Bash	sed 's/foo/bar/g' config.yaml
+ALLOW	plumb	Bash	sed -E 's#/api/v1#/api/v2#g; 5q' routes.ts
+ALLOW	plumb	Bash	sed -n '/TODO/=' main.go
+ALLOW	plumb	Bash	git show HEAD:main.go | sed -n '1,40p'
+ALLOW	plumb	Bash	sed -n '100,+20p' main.go
+ALLOW	plumb	Bash	sed '/^$/d' notes.txt
+BLOCK	plumb	Bash	sed -i 's/a/b/' main.go
+BLOCK	plumb	Bash	sed -i '' 's/a/b/' main.go
+BLOCK	plumb	Bash	sed -i.bak 's/a/b/' main.go
+BLOCK	plumb	Bash	sed -ni 's/a/b/p' main.go
+BLOCK	plumb	Bash	sed --in-place 's/a/b/' main.go
+BLOCK	plumb	Bash	sed -I '' 's/a/b/' main.go
+BLOCK	plumb	Bash	sed -n 'w /tmp/out' main.go
+BLOCK	plumb	Bash	sed 's/a/b/w out.txt' main.go
+BLOCK	plumb	Bash	sed 's/.*/echo hi/e' main.go
+BLOCK	plumb	Bash	sed '1e touch x' main.go
+BLOCK	plumb	Bash	sed 'r /etc/passwd' main.go
+BLOCK	plumb	Bash	sed -f script.sed main.go
+BLOCK	plumb	Bash	sed -e 'W leak' main.go
+BLOCK	plumb	Bash	sed -n '1,5p' main.go > notes.txt
+ALLOW	plumb	Bash	sed -n '1,5p' main.go > /tmp/plumb/head.txt
+
+# ---- awk: no commands, pipes or file writes
+ALLOW	plumb	Bash	awk '{print $1}' access.log
+ALLOW	plumb	Bash	awk -F: '$3 > 500 {print $1}' users.txt
+ALLOW	plumb	Bash	awk 'NR>=10 && NR<=20' main.go
+ALLOW	plumb	Bash	awk -v n=3 '{c[$n]++} END {for (k in c) print k, c[k]}' data.txt
+BLOCK	plumb	Bash	awk '{system("rm " $1)}' list.txt
+BLOCK	plumb	Bash	awk '{print > "out.txt"}' in.txt
+BLOCK	plumb	Bash	awk '{print $0 >> "/etc/hosts"}' in.txt
+BLOCK	plumb	Bash	awk '{print | "sh"}' in.txt
+BLOCK	plumb	Bash	awk 'BEGIN {"date" | getline d; print d}'
+BLOCK	plumb	Bash	awk -f prog.awk in.txt
+BLOCK	plumb	Bash	gawk -i inplace '{print}' in.txt
+
+# ---- other read-only tools
+ALLOW	plumb	Bash	nl -ba main.go
+ALLOW	plumb	Bash	cat go.mod | tr -s ' ' | column -t
+ALLOW	plumb	Bash	comm -12 a.txt b.txt
+ALLOW	plumb	Bash	cmp a.bin b.bin
+ALLOW	plumb	Bash	readlink -f skills/plumb/knowledge
+ALLOW	plumb	Bash	xxd assets/logo.png
+ALLOW	plumb	Bash	shasum -a 256 dist/app.js
+ALLOW	plumb	Bash	strings bin/api
+ALLOW	plumb	Bash	yq '.services' docker-compose.yml
+ALLOW	plumb	Bash	fd -e go handler
+ALLOW	plumb	Bash	tar -tzf release.tgz
+ALLOW	plumb	Bash	unzip -l app.zip
+ALLOW	plumb	Bash	command -v go
+ALLOW	plumb	Bash	type node
+BLOCK	plumb	Bash	xxd -r dump.hex out.bin
+BLOCK	plumb	Bash	xxd in.bin out.hex
+BLOCK	plumb	Bash	base64 -o out.txt in.bin
+BLOCK	plumb	Bash	yq -i '.a = 1' config.yaml
+BLOCK	plumb	Bash	fd -e tmp -x rm
+BLOCK	plumb	Bash	tar -xzf release.tgz
+BLOCK	plumb	Bash	tar -czf out.tgz src
+BLOCK	plumb	Bash	unzip app.zip
+BLOCK	plumb	Bash	command git push

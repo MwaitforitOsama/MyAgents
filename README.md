@@ -88,7 +88,7 @@ Uninstall: `./install.sh --uninstall`. Because the install uses symlinks, `git p
 
 ### What the guard enforces (`claude --agent plumb` only)
 
-- **Bash:** an allowlist of read-only commands plus tests and running the project. Details are in `skills/plumb/rules/commands.md`, and the code is in `claude/hooks/plumb_guard.py`. Commit/push and anything not on the list are blocked.
+- **Bash:** an allowlist of read-only commands plus tests and running the project. Details are in `skills/plumb/rules/commands.md`, and the rules are in `claude/hooks/plumb_rules.py` (`plumb_guard.py` is the launcher; it blocks if the rules fail to load). Commit/push and anything not on the list are blocked.
 - **Git:** read-only commands plus `git fetch`. Checkout, switch, pull, rebase, merge, commit and push are blocked.
 - **Writes:** only `.md` files in `docs/adr/`, `docs/plans/`, Mr. Plumb's `memory/`, `knowledge/clouds/*.draft.md`, plus anything in `/tmp/plumb/`.
 - Tests: `python3 claude/hooks/tests/run_guard_tests.py` (add a case to `guard-cases.txt` whenever you change the allowlist).
