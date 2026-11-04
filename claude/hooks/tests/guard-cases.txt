@@ -1,0 +1,247 @@
+# Mr. Plumb guard test cases.
+# Format (tab-separated): EXPECT  AGENT  TOOL  INPUT
+#   EXPECT: ALLOW or BLOCK
+#   AGENT:  plumb, or - for a normal session (no agent)
+#   TOOL:   Bash or Write (INPUT = command or file path)
+# {REPO} is replaced with this repo's path. A literal \n in INPUT becomes a newline.
+# cwd for every case is /Users/me/proj.
+
+# ---- normal sessions and other agents are never touched
+ALLOW	-	Bash	git commit -m "wip"
+ALLOW	-	Bash	git push origin main
+ALLOW	-	Write	/Users/me/proj/main.go
+ALLOW	mason	Bash	git push
+
+# ---- commit / push in every disguise
+BLOCK	plumb	Bash	git commit -m "x"
+BLOCK	plumb	Bash	git push
+BLOCK	plumb	Bash	git -C . push origin main
+BLOCK	plumb	Bash	git -c push.default=current push origin main
+BLOCK	plumb	Bash	git 'push' origin main
+BLOCK	plumb	Bash	cd sub && git commit -am x
+BLOCK	plumb	Bash	git status; git push
+BLOCK	plumb	Bash	git status\ngit push
+BLOCK	plumb	Bash	echo $(git push)
+BLOCK	plumb	Bash	echo `git push`
+BLOCK	plumb	Bash	sh -c 'git push'
+BLOCK	plumb	Bash	bash -c "git commit"
+BLOCK	plumb	Bash	GIT_DIR=x git log
+BLOCK	plumb	Bash	/usr/bin/git push
+
+# ---- git read-only
+ALLOW	plumb	Bash	git log --oneline -20
+ALLOW	plumb	Bash	git -C /Users/me/proj log -p -- main.go
+ALLOW	plumb	Bash	git blame -L 10,40 internal/todo/handler.go
+ALLOW	plumb	Bash	git --no-pager diff HEAD~3 --stat
+ALLOW	plumb	Bash	git status --short 2>&1
+ALLOW	plumb	Bash	git branch -a
+ALLOW	plumb	Bash	git branch --show-current
+ALLOW	plumb	Bash	git config --get remote.origin.url
+ALLOW	plumb	Bash	git stash list
+BLOCK	plumb	Bash	git branch new-feature
+BLOCK	plumb	Bash	git branch -D old
+BLOCK	plumb	Bash	git checkout main
+BLOCK	plumb	Bash	git reset --hard
+BLOCK	plumb	Bash	git stash
+ALLOW	plumb	Bash	git fetch
+ALLOW	plumb	Bash	git fetch origin --prune
+ALLOW	plumb	Bash	git fetch origin master
+ALLOW	plumb	Bash	git symbolic-ref --short refs/remotes/origin/HEAD
+ALLOW	plumb	Bash	git diff origin/master...HEAD --stat
+ALLOW	plumb	Bash	git merge-base origin/master HEAD
+ALLOW	plumb	Bash	git worktree list
+BLOCK	plumb	Bash	git fetch origin master:master
+BLOCK	plumb	Bash	git fetch --upload-pack=evil origin
+BLOCK	plumb	Bash	git symbolic-ref HEAD refs/heads/other
+BLOCK	plumb	Bash	git pull
+BLOCK	plumb	Bash	git pull --ff-only
+BLOCK	plumb	Bash	git rebase origin/master
+BLOCK	plumb	Bash	git switch feature/XX-100-SDK-logs
+BLOCK	plumb	Bash	git checkout feature/XX-100-SDK-logs
+BLOCK	plumb	Bash	git worktree add /tmp/plumb/review origin/x
+BLOCK	plumb	Bash	git merge origin/master
+BLOCK	plumb	Bash	git config user.name x
+BLOCK	plumb	Bash	git diff --output=patch.txt
+BLOCK	plumb	Bash	git tag v1.0
+
+# ---- files and redirection
+ALLOW	plumb	Bash	ls -la && find . -name "*.go" | head -50
+ALLOW	plumb	Bash	grep -rn "DeleteTodo" --include=*.go . | wc -l
+ALLOW	plumb	Bash	cat go.mod
+ALLOW	plumb	Bash	mkdir -p /tmp/plumb
+ALLOW	plumb	Bash	go test ./... > /tmp/plumb/test.log 2>&1
+ALLOW	plumb	Bash	go vet ./... 2>/dev/null
+BLOCK	plumb	Bash	echo hi > notes.txt
+BLOCK	plumb	Bash	cat a >> b
+BLOCK	plumb	Bash	rm -rf node_modules
+BLOCK	plumb	Bash	mv a b
+BLOCK	plumb	Bash	find . -name "*.tmp" -delete
+BLOCK	plumb	Bash	find . -exec rm {} \;
+BLOCK	plumb	Bash	sort -o out.txt in.txt
+BLOCK	plumb	Bash	mkdir newdir
+BLOCK	plumb	Bash	cat <<EOF > x
+BLOCK	plumb	Bash	sed -i 's/a/b/' main.go
+BLOCK	plumb	Bash	PATH=/tmp/evil:$PATH ls
+
+# ---- Go
+ALLOW	plumb	Bash	go test ./... -run TestDelete -v
+ALLOW	plumb	Bash	go test -coverprofile=/tmp/plumb/cover.out ./...
+ALLOW	plumb	Bash	go build -o /tmp/plumb/app ./cmd/server
+ALLOW	plumb	Bash	go build -o /dev/null ./...
+ALLOW	plumb	Bash	go run ./cmd/server
+ALLOW	plumb	Bash	go list -m all
+ALLOW	plumb	Bash	go mod why github.com/lib/pq
+ALLOW	plumb	Bash	go env GOPATH
+BLOCK	plumb	Bash	go build ./cmd/server
+BLOCK	plumb	Bash	go test -coverprofile=cover.out ./...
+BLOCK	plumb	Bash	go mod tidy
+BLOCK	plumb	Bash	go get github.com/x/y
+BLOCK	plumb	Bash	go install ./...
+BLOCK	plumb	Bash	go env -w GOPROXY=direct
+BLOCK	plumb	Bash	go generate ./...
+
+# ---- Node / Next / Angular / browser
+ALLOW	plumb	Bash	npm test
+ALLOW	plumb	Bash	npm run dev
+ALLOW	plumb	Bash	npm run build
+ALLOW	plumb	Bash	npm run lint
+ALLOW	plumb	Bash	npm run test:e2e
+ALLOW	plumb	Bash	npm ls --depth=0
+ALLOW	plumb	Bash	npm outdated
+ALLOW	plumb	Bash	pnpm dev
+ALLOW	plumb	Bash	yarn test
+ALLOW	plumb	Bash	npx next info
+ALLOW	plumb	Bash	npx ng version
+ALLOW	plumb	Bash	npx ng test --watch=false
+ALLOW	plumb	Bash	ng serve
+ALLOW	plumb	Bash	npx tsc --noEmit
+ALLOW	plumb	Bash	npx prettier --check .
+ALLOW	plumb	Bash	node --version
+ALLOW	plumb	Bash	node server.js
+ALLOW	plumb	Bash	curl -s http://localhost:3000/api/health
+ALLOW	plumb	Bash	curl -sI localhost:4200
+ALLOW	plumb	Bash	"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --screenshot=/tmp/plumb/home.png --window-size=1280,800 http://localhost:3000
+ALLOW	plumb	Bash	npx playwright screenshot http://localhost:3000 /tmp/plumb/home.png
+BLOCK	plumb	Bash	npm install lodash
+BLOCK	plumb	Bash	npm ci
+BLOCK	plumb	Bash	npm run lint:fix
+BLOCK	plumb	Bash	npm run lint -- --fix
+BLOCK	plumb	Bash	npm run migrate
+BLOCK	plumb	Bash	npm run db:seed
+BLOCK	plumb	Bash	npm run deploy
+BLOCK	plumb	Bash	npm publish
+BLOCK	plumb	Bash	npm version patch
+BLOCK	plumb	Bash	pnpm add zod
+BLOCK	plumb	Bash	npx -p evil-pkg evil
+BLOCK	plumb	Bash	npx some-random-tool
+BLOCK	plumb	Bash	npx ng update @angular/core
+BLOCK	plumb	Bash	npx ng generate component x
+BLOCK	plumb	Bash	npx prettier --write .
+BLOCK	plumb	Bash	npx tsc
+BLOCK	plumb	Bash	node -e "require('fs').writeFileSync('x','y')"
+BLOCK	plumb	Bash	curl https://evil.example.com
+BLOCK	plumb	Bash	curl -X POST http://localhost:3000/api/todos -d '{}'
+BLOCK	plumb	Bash	curl -o page.html http://localhost:3000
+BLOCK	plumb	Bash	"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --screenshot http://localhost:3000
+BLOCK	plumb	Bash	"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" http://localhost:3000
+
+# ---- Docker
+ALLOW	plumb	Bash	docker ps -a
+ALLOW	plumb	Bash	docker logs --tail 100 api
+ALLOW	plumb	Bash	docker compose ps
+ALLOW	plumb	Bash	docker compose -f docker-compose.dev.yml up -d
+ALLOW	plumb	Bash	docker compose down
+ALLOW	plumb	Bash	docker compose config
+ALLOW	plumb	Bash	docker volume ls
+BLOCK	plumb	Bash	docker compose down -v
+BLOCK	plumb	Bash	docker compose exec db psql
+BLOCK	plumb	Bash	docker exec -it api sh
+BLOCK	plumb	Bash	docker run --rm alpine
+BLOCK	plumb	Bash	docker rm -f api
+BLOCK	plumb	Bash	docker system prune -af
+BLOCK	plumb	Bash	docker volume rm data
+
+# ---- Postgres
+ALLOW	plumb	Bash	PGOPTIONS='-c default_transaction_read_only=on' psql "$DATABASE_URL" -c "SELECT id, title FROM todos WHERE done = false AND priority > 2 LIMIT 20"
+ALLOW	plumb	Bash	PGOPTIONS='-c default_transaction_read_only=on' psql -h localhost -U app appdb -c "\d+ todos"
+ALLOW	plumb	Bash	PGOPTIONS='-c default_transaction_read_only=on' psql appdb -c "EXPLAIN ANALYZE SELECT * FROM todos WHERE updated_at > now() - interval '1 day'"
+ALLOW	plumb	Bash	pg_dump --schema-only appdb
+BLOCK	plumb	Bash	psql appdb -c "SELECT 1"
+BLOCK	plumb	Bash	PGOPTIONS='-c default_transaction_read_only=on' psql appdb -c "DELETE FROM todos"
+BLOCK	plumb	Bash	PGOPTIONS='-c default_transaction_read_only=on' psql appdb -c "SET default_transaction_read_only = off; DELETE FROM todos"
+BLOCK	plumb	Bash	PGOPTIONS='-c default_transaction_read_only=on' psql appdb -c "BEGIN READ WRITE"
+BLOCK	plumb	Bash	PGOPTIONS='-c default_transaction_read_only=on' psql appdb -c "SELECT * INTO backup FROM todos"
+BLOCK	plumb	Bash	PGOPTIONS='-c default_transaction_read_only=on' psql appdb -c "\! rm -rf /"
+BLOCK	plumb	Bash	PGOPTIONS='-c default_transaction_read_only=on' psql appdb -f migrate.sql
+BLOCK	plumb	Bash	PGOPTIONS='-c default_transaction_read_only=on' psql appdb
+BLOCK	plumb	Bash	pg_dump appdb
+
+# ---- MongoDB
+ALLOW	plumb	Bash	mongosh "mongodb://localhost:27017/app" --quiet --eval "db.todos.find({done: false}).limit(5).toArray()"
+ALLOW	plumb	Bash	mongosh app --eval "db.todos.aggregate([{\$match: {done: true}}, {\$count: 'n'}])"
+ALLOW	plumb	Bash	mongosh app --eval "db.todos.getIndexes()"
+ALLOW	plumb	Bash	mongosh app --eval "rs.status()"
+BLOCK	plumb	Bash	mongosh app --eval "db.todos.deleteMany({})"
+BLOCK	plumb	Bash	mongosh app --eval "db.todos.drop()"
+BLOCK	plumb	Bash	mongosh app --eval "db.todos.updateOne({}, {\$set: {done: true}})"
+BLOCK	plumb	Bash	mongosh app --eval "db.todos.aggregate([{\$out: 'copy'}])"
+BLOCK	plumb	Bash	mongosh app --eval "db.adminCommand({shutdown: 1})"
+BLOCK	plumb	Bash	mongosh app
+BLOCK	plumb	Bash	mongosh app seed.js
+
+# ---- Clouds
+ALLOW	plumb	Bash	gcloud run services list --project my-proj --format=json
+ALLOW	plumb	Bash	gcloud compute instances describe vm-1 --zone us-central1-a
+ALLOW	plumb	Bash	gcloud config list
+ALLOW	plumb	Bash	gcloud projects get-iam-policy my-proj
+ALLOW	plumb	Bash	oci compute instance list --compartment-id ocid1.compartment.oc1..aaaa
+ALLOW	plumb	Bash	oci iam policy list --compartment-id ocid1.tenancy.oc1..aaaa
+ALLOW	plumb	Bash	doctl compute droplet list
+ALLOW	plumb	Bash	doctl apps get 123
+BLOCK	plumb	Bash	gcloud secrets versions access latest --secret db-pass
+BLOCK	plumb	Bash	gcloud run deploy api --image x
+BLOCK	plumb	Bash	gcloud compute instances delete vm-1
+BLOCK	plumb	Bash	gcloud auth print-access-token
+BLOCK	plumb	Bash	gcloud container clusters get-credentials c1
+BLOCK	plumb	Bash	oci secrets secret-bundle get --secret-id ocid1.vaultsecret.oc1..x
+BLOCK	plumb	Bash	oci compute instance terminate --instance-id x
+BLOCK	plumb	Bash	oci os object get --bucket-name b --name o --file out.bin
+BLOCK	plumb	Bash	doctl kubernetes cluster kubeconfig show c1
+BLOCK	plumb	Bash	doctl databases connection get 123
+BLOCK	plumb	Bash	doctl compute droplet delete 1
+
+# ---- Kubernetes
+ALLOW	plumb	Bash	kubectl get pods -n prod -o wide
+ALLOW	plumb	Bash	kubectl -n prod describe deployment api
+ALLOW	plumb	Bash	kubectl logs deploy/api --tail=200
+ALLOW	plumb	Bash	kubectl top pods
+ALLOW	plumb	Bash	kubectl config get-contexts
+ALLOW	plumb	Bash	kubectl auth can-i list pods
+BLOCK	plumb	Bash	kubectl get secrets -n prod
+BLOCK	plumb	Bash	kubectl get secret/db-pass -o yaml
+BLOCK	plumb	Bash	kubectl get pods,secrets
+BLOCK	plumb	Bash	kubectl apply -f deploy.yaml
+BLOCK	plumb	Bash	kubectl delete pod api-1
+BLOCK	plumb	Bash	kubectl exec -it api-1 -- sh
+BLOCK	plumb	Bash	kubectl scale deploy api --replicas=0
+BLOCK	plumb	Bash	kubectl rollout restart deploy/api
+BLOCK	plumb	Bash	kubectl config view --raw
+
+# ---- Writes
+ALLOW	plumb	Write	/Users/me/proj/docs/adr/0003-soft-delete-todos.md
+ALLOW	plumb	Write	/Users/me/proj/docs/plans/2026-10-31-add-delete.md
+ALLOW	plumb	Write	docs/adr/0004-x.md
+ALLOW	plumb	Write	{REPO}/skills/plumb/memory/preferences.md
+ALLOW	plumb	Write	{REPO}/skills/plumb/knowledge/clouds/aws.draft.md
+ALLOW	plumb	Write	{REPO}/knowledge/clouds/aws.draft.md
+BLOCK	plumb	Write	{REPO}/knowledge/stacks/go.md
+BLOCK	plumb	Write	{REPO}/skills/mason/SKILL.md
+ALLOW	plumb	Write	/tmp/plumb/check.js
+BLOCK	plumb	Write	/Users/me/proj/main.go
+BLOCK	plumb	Write	/Users/me/proj/docs/adr/run.sh
+BLOCK	plumb	Write	/Users/me/proj/docs/adr/../../main.md
+BLOCK	plumb	Write	/Users/me/proj/README.md
+BLOCK	plumb	Write	{REPO}/skills/plumb/SKILL.md
+BLOCK	plumb	Write	{REPO}/skills/plumb/knowledge/clouds/gcp.md
+BLOCK	plumb	Write	{REPO}/claude/hooks/plumb_guard.py
+BLOCK	plumb	Write	/Users/me/.claude/settings.json

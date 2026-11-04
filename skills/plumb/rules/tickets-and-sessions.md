@@ -1,0 +1,1 @@
+../../../shared/rules/tickets-and-sessions.md
