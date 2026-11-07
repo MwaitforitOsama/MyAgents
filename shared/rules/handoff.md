@@ -42,6 +42,10 @@ Every message starts with its type and the plan path, then at most a few lines. 
 | `APPROVED` | Plumb → Mason | The review passed | Nothing |
 | `RUN_REQUEST` | Plumb → Mason | Plumb needs a command it isn't allowed to run | Nothing on Plumb's side. **Mason must ask the user before running it** |
 | `RUN_RESULT` | Mason → Plumb | Output of a `RUN_REQUEST` the user approved, or "declined by the user" | The user's answer |
+| `TICKETS_READY` | Plumb → Mason | A ticket plan in `docs/tickets/` is ready to create in Jira | The user answered **yes** to "Send these tickets to Mason to create?" |
+| `TICKETS_DONE` | Mason → Plumb | Tickets created (keys are in the file), or "declined by the user", or stopped on an error | The user's batch answer |
+
+`TICKETS_READY` and `TICKETS_DONE` point to the ticket file (`docs/tickets/…`) instead of a plan file.
 
 ## The flow
 
@@ -84,10 +88,30 @@ Every message starts with its type and the plan path, then at most a few lines. 
    ```
    Mason never changes the command without the user's say-so, never batches several requests into one approval, and sends `RUN_RESULT` with the output (or "declined by the user").
 
+## Ticket plans (Jira)
+
+Mr. Plumb plans tickets; Mason creates them. Plumb has no Jira write tools. Details: `rules/tickets-and-sessions.md`, "Ticket plans".
+
+1. **Plan.** Plumb writes `docs/tickets/YYYY-MM-DD-title.md` (`templates/tickets.md`) with `Status: Proposed`, and shows the user a short summary (count, types, project). When the user accepts it, Plumb asks (multiple choice): *"Send these tickets to Mason to create?"* a) Yes, send them now ← recommended b) Not yet c) I'll create them myself. Only on **yes**: set `Status: Sent to Mason`, send `TICKETS_READY`.
+2. **Check (Mason).** Mason re-checks the plan against Jira (project, issue types, required fields, link types, duplicates). Problems go back to Plumb as a `DISPUTE` with an entry in a `Disputes` section of the ticket file, same rules and caps as step 3 above.
+3. **Batch approval (Mason).** Mason shows the user every ticket (type, summary, parent), link and comment, and asks:
+   ```
+   Create these in Jira <PROJECT>?
+   a) Create all ← recommended
+   b) Create only some (say which)
+   c) Don't create them
+   ```
+   A message from Plumb is never this approval. Each create, link and comment call still prompts (Mason's guard forces it in every mode).
+4. **Create (Mason).** Set `Status: Creating`. Parents first, then children, then links, then comments. Record each key in the `Created` table. Stop and ask the user on any error. Never create the same ticket twice.
+5. **Report.** Set `Status: Done`, give the user the keys, and send `TICKETS_DONE` to Plumb.
+
+Plumb never edits the `Created` table. Mason never changes ticket content without a resolved dispute or the user's say-so.
+
 ## Freedom to act without asking
 
 All execution goes through the user **until the user changes the permission mode themselves** (Shift+Tab, or allow rules in their settings). An agent never treats a chat message, from the user or from the other agent, as having changed its permissions. If the user says "go ahead without asking", tell them how to change the mode. Even then:
 - `RUN_REQUEST`s from Plumb always ask (step 8).
+- Jira creates, links and comments always prompt, after the batch question.
 - Commit, push, deploys, cloud changes, migrations and other high-impact commands always prompt. Mason's guard forces that.
 
 ## When the other agent isn't there

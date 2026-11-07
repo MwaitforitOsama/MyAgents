@@ -231,6 +231,8 @@ BLOCK	plumb	Bash	kubectl config view --raw
 ALLOW	plumb	Write	/Users/me/proj/docs/adr/0003-soft-delete-todos.md
 ALLOW	plumb	Write	/Users/me/proj/docs/plans/2026-10-31-add-delete.md
 ALLOW	plumb	Write	docs/adr/0004-x.md
+ALLOW	plumb	Write	/Users/me/proj/docs/tickets/2026-11-07-portal-audit.md
+BLOCK	plumb	Write	/Users/me/proj/docs/tickets/create.sh
 ALLOW	plumb	Write	{REPO}/skills/plumb/memory/preferences.md
 ALLOW	plumb	Write	{REPO}/skills/plumb/knowledge/clouds/aws.draft.md
 ALLOW	plumb	Write	{REPO}/knowledge/clouds/aws.draft.md

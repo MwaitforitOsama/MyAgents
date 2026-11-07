@@ -11,7 +11,8 @@ user has granted more freedom (a mode switch or allow rules):
   ASK   high-impact actions always prompt the user, whatever the mode:
         commit/push and history rewrites, deploys and cloud changes,
         publishing, destructive database and file operations, remote access,
-        and shell indirection that could hide any of these.
+        shell indirection that could hide any of these, and Jira writes
+        (create issue, link issues, comment).
   DENY  Mason may never change its own permissions or Claude Code config.
 
 Output: exit 0 + JSON {"permissionDecision": "ask"} to prompt, exit 2 to block,
@@ -113,6 +114,16 @@ ASK_WRITE = [
 ]
 
 
+# Jira write tools Mason has (claude/agents/mason.md). Each call always prompts the user,
+# whatever the permission mode or allow rules: tickets are created only from a ticket plan
+# the user approved (shared/rules/handoff.md, TICKETS_READY).
+JIRA_WRITE_TOOLS = {
+    "mcp__atlassian__createJiraIssue": "creating a Jira issue",
+    "mcp__atlassian__createIssueLink": "linking Jira issues",
+    "mcp__atlassian__addCommentToJiraIssue": "commenting on a Jira issue",
+}
+
+
 def ask(reason):
     print(json.dumps({"hookSpecificOutput": {
         "hookEventName": "PreToolUse",
@@ -173,6 +184,8 @@ def main(data):
     try:
         if tool == "Bash":
             return check_bash(tool_input.get("command", ""))
+        if tool in JIRA_WRITE_TOOLS:
+            return ask(JIRA_WRITE_TOOLS[tool])
         if tool in WRITE_TOOLS:
             return check_write(tool_input.get("file_path") or tool_input.get("notebook_path") or "",
                                data.get("cwd") or os.getcwd())

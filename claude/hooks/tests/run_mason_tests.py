@@ -14,7 +14,8 @@ CWD = "/Users/me/proj"
 
 def run(agent, tool, value):
     payload = {"hook_event_name": "PreToolUse", "tool_name": tool, "cwd": CWD,
-               "tool_input": {"command": value} if tool == "Bash" else {"file_path": value}}
+               "tool_input": {"command": value} if tool == "Bash"
+               else {} if tool.startswith("mcp__") else {"file_path": value}}
     if agent != "-":
         payload["agent_type"] = agent
     proc = subprocess.run([sys.executable, GUARD], input=json.dumps(payload),

@@ -130,3 +130,11 @@ DENY	mason	Edit	{REPO}/knowledge/stacks/go.md
 DENY	mason	Edit	{REPO}/skills/plumb/SKILL.md
 PASS	mason	Edit	{REPO}/skills/mason/memory/learnings.md
 PASS	mason	Write	{REPO}/knowledge/clouds/aws.draft.md
+
+# ---- Jira writes always prompt; reads and other sessions are untouched
+ASK	mason	mcp__atlassian__createJiraIssue	-
+ASK	mason	mcp__atlassian__createIssueLink	-
+ASK	mason	mcp__atlassian__addCommentToJiraIssue	-
+PASS	mason	mcp__atlassian__getJiraIssue	-
+PASS	-	mcp__atlassian__createJiraIssue	-
+PASS	plumb	mcp__atlassian__createJiraIssue	-

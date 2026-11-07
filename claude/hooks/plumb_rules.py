@@ -66,9 +66,9 @@ def check_write(path, cwd):
             return
         parts = real.split(os.sep)
         for i in range(len(parts) - 2):
-            if parts[i] == "docs" and parts[i + 1] in ("adr", "plans"):
+            if parts[i] == "docs" and parts[i + 1] in ("adr", "plans", "tickets"):
                 return
-    block("Mr. Plumb may only write .md files under docs/adr/, docs/plans/, its own memory/, "
+    block("Mr. Plumb may only write .md files under docs/adr/, docs/plans/, docs/tickets/, its own memory/, "
           "knowledge/clouds/*.draft.md, or anything under /tmp/plumb/ (got `%s`)" % path)
 
 

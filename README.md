@@ -34,7 +34,8 @@ Mason writes and changes code in Go, Angular, Next.js, React Native, JavaScript/
 
 - **From a plan:** "implement docs/plans/2026-11-03-x.md", or a `PLAN_READY` message from Plumb.
 - **Standalone:** ask it directly. For small tasks it writes a short plan in chat and asks before starting. For large or hard-to-undo work (database, auth, API contract, cloud architecture) it recommends Plumb plan it first.
-- **Jira and Fullstory:** read-only, like Plumb.
+- **Jira:** read-only, except that Mason creates issues, links and comments from a ticket plan Plumb wrote in `docs/tickets/` and sent with `TICKETS_READY`. You approve the batch in Mason's session, and Mason's guard forces a permission prompt on every create, link and comment call. Nothing edits, transitions or deletes issues.
+- **Fullstory:** read-only, like Plumb.
 
 ### What Mason's guard enforces (`claude --agent mason` only)
 
@@ -59,7 +60,7 @@ Reviews: check out the branch yourself, then ask "review feature/XX-100-SDK-logs
 
 Questions are always multiple choice, with Mr. Plumb's recommendation first.
 
-**Jira and Fullstory (read-only).** In `claude --agent plumb`, Mr. Plumb can read Jira tickets (Atlassian MCP) and review Fullstory sessions (Fullstory plugin) while debugging. Only read tools appear in the agent's `tools:` list (`claude/agents/plumb.md`), so it cannot comment on, edit, transition or create tickets, or build segments or metrics. Rules: `skills/plumb/rules/tickets-and-sessions.md`. Prerequisites on each device: the `atlassian` MCP server (`https://mcp.atlassian.com/v1/mcp`, user scope) and the `fullstory@fullstory` plugin, both signed in. Never use a server wildcard like `mcp__atlassian__*` in `tools:`, because it would also grant the write tools.
+**Jira and Fullstory (read-only).** In `claude --agent plumb`, Mr. Plumb can read Jira tickets (Atlassian MCP) and review Fullstory sessions (Fullstory plugin) while debugging. Only read tools appear in the agent's `tools:` list (`claude/agents/plumb.md`), so it cannot comment on, edit, transition or create tickets, or build segments or metrics. To get tickets created, Plumb writes a ticket plan in `docs/tickets/` and, after your yes, hands it to Mason (`shared/rules/handoff.md`, "Ticket plans"). Rules: `skills/plumb/rules/tickets-and-sessions.md`. Prerequisites on each device: the `atlassian` MCP server (`https://mcp.atlassian.com/v1/mcp`, user scope) and the `fullstory@fullstory` plugin, both signed in. Never use a server wildcard like `mcp__atlassian__*` in `tools:`, because it would also grant the write tools.
 
 ### Install (any device)
 
@@ -90,7 +91,7 @@ Uninstall: `./install.sh --uninstall`. Because the install uses symlinks, `git p
 
 - **Bash:** an allowlist of read-only commands plus tests and running the project. Details are in `skills/plumb/rules/commands.md`, and the rules are in `claude/hooks/plumb_rules.py` (`plumb_guard.py` is the launcher; it blocks if the rules fail to load). Commit/push and anything not on the list are blocked.
 - **Git:** read-only commands plus `git fetch`. Checkout, switch, pull, rebase, merge, commit and push are blocked.
-- **Writes:** only `.md` files in `docs/adr/`, `docs/plans/`, Mr. Plumb's `memory/`, `knowledge/clouds/*.draft.md`, plus anything in `/tmp/plumb/`.
+- **Writes:** only `.md` files in `docs/adr/`, `docs/plans/`, `docs/tickets/`, Mr. Plumb's `memory/`, `knowledge/clouds/*.draft.md`, plus anything in `/tmp/plumb/`.
 - Tests: `python3 claude/hooks/tests/run_guard_tests.py` (add a case to `guard-cases.txt` whenever you change the allowlist).
 
 ### Limits of the guard

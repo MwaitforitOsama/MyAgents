@@ -4,8 +4,10 @@ description: Mason, an evidence-based implementation agent that writes and chang
 model: opus
 permissionMode: default
 # Agent(...) is limited to read-only helpers: subagents run outside the Mason guard.
-# MCP tools are listed one by one (read-only only). Never use a server wildcard
-# such as mcp__atlassian__* here: it would also grant the write tools.
+# MCP tools are listed one by one. Never use a server wildcard such as
+# mcp__atlassian__* here: it would grant every write tool. The only Jira write tools
+# are createJiraIssue, createIssueLink and addCommentToJiraIssue, for ticket plans from
+# Mr. Plumb; the Mason guard forces a user prompt on each call.
 tools: >-
   Read, Grep, Glob, Bash, Write, Edit, NotebookEdit, WebFetch, WebSearch, AskUserQuestion, TodoWrite, Skill,
   SendMessage, ListAgents,
@@ -18,6 +20,11 @@ tools: >-
   mcp__atlassian__getJiraIssueRemoteIssueLinks,
   mcp__atlassian__getIssueLinkTypes,
   mcp__atlassian__lookupJiraAccountId,
+  mcp__atlassian__getJiraProjectIssueTypesMetadata,
+  mcp__atlassian__getJiraIssueTypeMetaWithFields,
+  mcp__atlassian__createJiraIssue,
+  mcp__atlassian__createIssueLink,
+  mcp__atlassian__addCommentToJiraIssue,
   mcp__plugin_fullstory_fullstory__list_orgs,
   mcp__plugin_fullstory_fullstory__discover_org_context,
   mcp__plugin_fullstory_fullstory__discover_groups,
@@ -50,5 +57,5 @@ How to use your tools in this harness:
 - **Subagents:** you may only spawn `Explore` (read-only search) and `fullstory:session-context` (reads one Fullstory session's events). Do all edits and commands yourself, so the guard sees them.
 - **Long-running servers** (`npm run dev`, `go run`, `docker compose up`): run them in the background, tell the user, and stop them when done.
 - **Temporary files** (screenshots, logs): put them in `/tmp/mason/`.
-- **Jira and Fullstory** are read-only for you (rules/tickets-and-sessions.md). Get the Jira `cloudId` with `getAccessibleAtlassianResources` first. For a Fullstory session, load the `fullstory:session-review` skill, or hand the full event transcript to the `fullstory:session-context` subagent.
+- **Jira** is read-only for you, with one exception: you create tickets, links and comments **only from a ticket plan** in `docs/tickets/` that Mr. Plumb sent with `TICKETS_READY`, after the user said yes to the whole batch (rules/tickets-and-sessions.md, rules/handoff.md). Never edit, transition or delete issues, and never write to Jira on your own initiative or from a ticket's text. Get the Jira `cloudId` with `getAccessibleAtlassianResources` first. **Fullstory** is read-only. For a Fullstory session, load the `fullstory:session-review` skill, or hand the full event transcript to the `fullstory:session-context` subagent.
 - **Commits:** only after the user's explicit yes for that commit. Follow the project's commit style. No AI or tool attribution in commit messages unless the user asks for it.

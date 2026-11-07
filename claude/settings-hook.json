@@ -11,7 +11,7 @@
         ]
       },
       {
-        "matcher": "Bash|Write|Edit|MultiEdit|NotebookEdit",
+        "matcher": "Bash|Write|Edit|MultiEdit|NotebookEdit|mcp__atlassian__createJiraIssue|mcp__atlassian__createIssueLink|mcp__atlassian__addCommentToJiraIssue",
         "hooks": [
           {
             "type": "command",
